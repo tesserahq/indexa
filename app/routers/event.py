@@ -8,9 +8,12 @@ from fastapi_pagination import Page, Params  # type: ignore[import-not-found]
 from fastapi_pagination.ext.sqlalchemy import paginate  # type: ignore[import-not-found]
 
 from app.db import get_db
-from app.schemas.event import Event
+from app.schemas.event import Event as EventSchema
+from app.models.event import Event
 from app.services.event_service import EventService
 from app.auth.rbac import build_rbac_dependencies
+from app.commands.index_entity_command import IndexEntityCommand
+from app.routers.utils.dependencies import get_event_by_id
 from fastapi import Request
 
 
@@ -42,7 +45,7 @@ rbac = build_rbac_dependencies(
 )
 
 
-@router.get("", response_model=Page[Event], status_code=status.HTTP_200_OK)
+@router.get("", response_model=Page[EventSchema], status_code=status.HTTP_200_OK)
 def list_events(
     project_id: Annotated[
         Optional[UUID],
@@ -86,3 +89,18 @@ def list_events(
         tags=tags, labels=labels_payload, privy=False, project_id=project_id
     )
     return paginate(db, query, params)
+
+
+@router.post(
+    "/{event_id}/index",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def index_event(
+    event_id: UUID,
+    event: Event = Depends(get_event_by_id),
+    db: Session = Depends(get_db),
+    _authorized: bool = Depends(rbac["update"]),
+) -> None:
+    """Trigger indexing for a specific event."""
+    command = IndexEntityCommand(db)
+    command.execute(event)

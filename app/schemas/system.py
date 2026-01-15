@@ -46,7 +46,7 @@ class DatabaseGroup(BaseModel):
 class TelemetryGroup(BaseModel):
     otel_enabled: bool
     otel_exporter_otlp_endpoint: str
-    otel_service_name: str
+    otel_name: str
 
 
 class RedisGroup(BaseModel):

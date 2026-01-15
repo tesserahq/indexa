@@ -9,7 +9,6 @@ from app.schemas.system import (
     RedisGroup,
     ExternalServicesGroup,
 )
-from app.schemas.common import DataResponse
 from tessera_sdk.utils.auth import get_current_user
 from app.config import get_settings
 from app.auth.rbac import build_rbac_dependencies
@@ -32,11 +31,11 @@ rbac = build_rbac_dependencies(
 )
 
 
-@router.get("/settings", response_model=DataResponse[SystemSettingsGrouped])
+@router.get("/settings", response_model=SystemSettingsGrouped)
 def get_system_settings(
     _authorized: bool = Depends(rbac["read"]),
     _current_user=Depends(get_current_user),
-):
+) -> SystemSettingsGrouped:
     """Return grouped, non-sensitive system configuration settings for troubleshooting."""
     s = get_settings()
 
@@ -95,4 +94,4 @@ def get_system_settings(
         services=services_group,
     )
 
-    return DataResponse(data=grouped)
+    return grouped

@@ -19,27 +19,29 @@ class RBACActions:
 def build_rbac_dependencies(
     *,
     resource: str,
-    project_resolver: ProjectResolver,
+    project_resolver: Optional[ProjectResolver] = None,
+    domain_resolver: Optional[ProjectResolver] = None,
 ):
+    resolver = domain_resolver or project_resolver
     return {
         "create": authorize(
             resource=f"{PREFIX}.{resource}",
             action=RBACActions.CREATE,
-            domain_resolver=project_resolver,
+            domain_resolver=resolver,
         ),
         "read": authorize(
             resource=f"{PREFIX}.{resource}",
             action=RBACActions.READ,
-            domain_resolver=project_resolver,
+            domain_resolver=resolver,
         ),
         "update": authorize(
             resource=f"{PREFIX}.{resource}",
             action=RBACActions.UPDATE,
-            domain_resolver=project_resolver,
+            domain_resolver=resolver,
         ),
         "delete": authorize(
             resource=f"{PREFIX}.{resource}",
             action=RBACActions.DELETE,
-            domain_resolver=project_resolver,
+            domain_resolver=resolver,
         ),
     }

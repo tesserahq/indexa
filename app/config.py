@@ -83,6 +83,21 @@ class Settings(BaseSettings):
     db_app_name: str = Field(
         default="indexa-api", json_schema_extra={"env": "DB_APP_NAME"}
     )
+    algolia_app_id: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "ALGOLIA_APP_ID"}
+    )
+    algolia_api_key: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "ALGOLIA_API_KEY"}
+    )
+    typesense_host: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "TYPESENSE_HOST"}
+    )
+    typesense_api_key: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "TYPESENSE_API_KEY"}
+    )
+    typesense_port: int = Field(
+        default=443, json_schema_extra={"env": "TYPESENSE_PORT"}
+    )
 
     @model_validator(mode="before")
     def set_database_url(cls, values):
