@@ -47,6 +47,43 @@ REQUESTS_IN_PROGRESS = Gauge(
     ["method", "path", "app_name"],
 )
 
+# Indexing metrics
+INDEXING_EVENTS_TOTAL = Counter(
+    "indexing_events_total",
+    "Total count of indexing events by service and status",
+    ["service", "status", "entity_type"],
+)
+
+INDEXING_DURATION_SECONDS = Histogram(
+    "indexing_duration_seconds",
+    "Histogram of indexing duration by entity type (in seconds)",
+    ["entity_type", "provider"],
+)
+
+PROVIDER_OPERATIONS_TOTAL = Counter(
+    "provider_operations_total",
+    "Total count of provider operations by provider, operation, and status",
+    ["provider", "operation", "status"],
+)
+
+PROVIDER_LATENCY_SECONDS = Histogram(
+    "provider_latency_seconds",
+    "Histogram of provider operation latency (in seconds)",
+    ["provider", "operation"],
+)
+
+REINDEX_JOBS_TOTAL = Counter(
+    "reindex_jobs_total",
+    "Total count of reindex jobs by status",
+    ["status"],
+)
+
+REINDEX_PROGRESS = Gauge(
+    "reindex_progress",
+    "Current progress of reindex jobs by job_id",
+    ["job_id"],
+)
+
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, app_name: str = "fastapi-app") -> None:

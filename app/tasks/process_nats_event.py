@@ -57,6 +57,12 @@ def process_nats_event_task(msg: dict) -> None:
             _ensure_user_onboarded(db, user_id)
 
         logger.info(f"Event created successfully: {created_event.id}")
+
+        # Queue indexing task asynchronously
+        from app.tasks.index_entity_task import index_entity_task
+
+        index_entity_task.delay(str(created_event.id))
+
     except Exception as e:
         logger.error(f"Error creating event: {e}", exc_info=True)
         db.rollback()

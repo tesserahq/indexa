@@ -1,0 +1,108 @@
+from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_pagination import Page, Params  # type: ignore[import-not-found]
+from fastapi_pagination.ext.sqlalchemy import paginate  # type: ignore[import-not-found]
+from sqlalchemy.orm import Session
+
+from app.db import get_db
+from app.schemas.reindex_job import (
+    ReindexJob,
+    ReindexJobCreate,
+    ReindexJobStatusResponse,
+)
+from app.services.reindex_service import ReindexService
+from app.models.reindex_job import ReindexJobStatus
+from app.auth.rbac import build_rbac_dependencies
+from app.exceptions.handlers import ResourceNotFoundError
+from app.tasks.reindex_task import reindex_task
+from fastapi import Request
+
+router = APIRouter(
+    prefix="/reindex",
+    tags=["reindex"],
+    responses={404: {"description": "Not found"}},
+)
+
+
+async def infer_domain(request: Request) -> Optional[str]:
+    """Infer domain for RBAC."""
+    return "*"
+
+
+RESOURCE = "reindex"
+rbac = build_rbac_dependencies(
+    resource=RESOURCE,
+    domain_resolver=infer_domain,
+)
+
+
+@router.post("", response_model=ReindexJob, status_code=status.HTTP_201_CREATED)
+def create_reindex_job(
+    job_data: ReindexJobCreate,
+    db: Session = Depends(get_db),
+    _authorized: bool = Depends(rbac["create"]),
+) -> ReindexJob:
+    """Create and trigger a reindex job."""
+    service = ReindexService(db)
+    created_job = service.create_reindex_job(job_data)
+
+    # Trigger async task
+    reindex_task.delay(str(created_job.id))
+
+    return created_job
+
+
+@router.get("", response_model=Page[ReindexJob], status_code=status.HTTP_200_OK)
+def list_reindex_jobs(
+    params: Params = Depends(),
+    db: Session = Depends(get_db),
+    _authorized: bool = Depends(rbac["read"]),
+) -> Page[ReindexJob]:
+    """List all reindex jobs."""
+    service = ReindexService(db)
+    query = db.query(service.model_class).order_by(
+        service.model_class.created_at.desc()
+    )
+    return paginate(db, query, params)
+
+
+@router.get(
+    "/{job_id}",
+    response_model=ReindexJobStatusResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_reindex_job(
+    job_id: UUID,
+    db: Session = Depends(get_db),
+    _authorized: bool = Depends(rbac["read"]),
+) -> ReindexJobStatusResponse:
+    """Get a specific reindex job by ID."""
+    service = ReindexService(db)
+    job = service.get_reindex_job(job_id)
+    if not job:
+        raise ResourceNotFoundError(f"Reindex job with id {job_id} not found")
+    return ReindexJobStatusResponse.model_validate(job)
+
+
+@router.post("/{job_id}/cancel", status_code=status.HTTP_204_NO_CONTENT)
+def cancel_reindex_job(
+    job_id: UUID,
+    db: Session = Depends(get_db),
+    _authorized: bool = Depends(rbac["update"]),
+) -> None:
+    """Cancel a running reindex job."""
+    service = ReindexService(db)
+    job = service.get_reindex_job(job_id)
+    if not job:
+        raise ResourceNotFoundError(f"Reindex job with id {job_id} not found")
+
+    if job.status not in (ReindexJobStatus.PENDING, ReindexJobStatus.RUNNING):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot cancel job with status {job.status}",
+        )
+
+    service.update_reindex_job_status(job_id, ReindexJobStatus.CANCELLED)
+    # TODO: Cancel the Celery task if running

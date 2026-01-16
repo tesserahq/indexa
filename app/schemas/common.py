@@ -7,7 +7,7 @@ T = TypeVar("T")
 class ListResponse(BaseModel, Generic[T]):
     """Generic response model for wrapping list responses."""
 
-    data: List[T]
+    items: List[T]
 
 
 class DataResponse(BaseModel, Generic[T]):

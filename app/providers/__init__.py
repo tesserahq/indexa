@@ -1,0 +1,1 @@
+"""Search provider abstraction layer."""
