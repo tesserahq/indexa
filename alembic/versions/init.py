@@ -49,6 +49,7 @@ def upgrade() -> None:
         sa.Column("verified", sa.Boolean, default=False),
         sa.Column("verified_at", sa.DateTime, nullable=True),
         sa.Column("external_id", sa.String, nullable=True),
+        sa.Column("service_account", sa.Boolean, default=False),
         sa.Column(
             "created_at", sa.DateTime, nullable=False, server_default=sa.text("now()")
         ),

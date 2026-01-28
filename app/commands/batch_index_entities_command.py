@@ -87,13 +87,11 @@ class BatchIndexEntitiesCommand:
             self.logger.warning("No search providers enabled")
             return {"indexed": 0, "failed": 0, "entities": []}
 
-        # Build documents and upsert to providers
-        indexed_count = 0
+        # Build all documents first
+        documents: list[Dict[str, Any]] = []
         failed_count = 0
-        indexed_entities = []
 
         for entity in entities:
-            # Assume entity has an "id" field
             entity_id = str(entity.get("id", ""))
             if not entity_id:
                 self.logger.warning(f"Entity missing ID, skipping: {entity}")
@@ -101,32 +99,42 @@ class BatchIndexEntitiesCommand:
                 continue
 
             try:
-                # Build document from entity (entity is already the full response)
                 document = build_document_from_api_response(
+                    source=entity["source"],
                     entity_type=entity_type,
                     entity_id=entity_id,
                     domain_response=entity,
                 )
-
-                # Upsert to all providers
-                for provider in providers:
-                    try:
-                        provider.upsert(document)
-                        indexed_count += 1
-                        indexed_entities.append(document.get("id"))
-                    except Exception as e:
-                        self.logger.error(
-                            f"Failed to index entity {entity_type}/{entity_id} to {provider.name}: {e}",
-                            exc_info=True,
-                        )
-                        failed_count += 1
-
+                documents.append(document)
             except Exception as e:
                 self.logger.error(
                     f"Failed to build document for entity {entity_type}/{entity_id}: {e}",
                     exc_info=True,
                 )
                 failed_count += 1
+
+        if not documents:
+            return {
+                "indexed": 0,
+                "failed": failed_count,
+                "entities": [],
+                "total_in_page": len(entities),
+            }
+
+        # Upsert batch to all providers
+        indexed_count = 0
+        indexed_entities = [doc.get("id") for doc in documents]
+
+        for provider in providers:
+            try:
+                provider.upsert_batch(documents)
+                indexed_count += len(documents)
+            except Exception as e:
+                self.logger.error(
+                    f"Failed to batch index {len(documents)} entities to {provider.name}: {e}",
+                    exc_info=True,
+                )
+                failed_count += len(documents)
 
         return {
             "indexed": indexed_count,

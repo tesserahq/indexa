@@ -29,32 +29,15 @@ def upgrade() -> None:
             primary_key=True,
             server_default=sa.text("gen_random_uuid()"),
         ),
-        sa.Column("scope", sa.String(), nullable=False),
         sa.Column("domains", postgresql.ARRAY(sa.String()), nullable=True),
         sa.Column("entity_types", postgresql.ARRAY(sa.String()), nullable=True),
-        sa.Column("providers", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("updated_after", sa.DateTime(), nullable=True),
         sa.Column("updated_before", sa.DateTime(), nullable=True),
         sa.Column(
-            "mode",
-            sa.Enum("upsert", "replace", name="reindexjobmode"),
-            nullable=False,
-            server_default="upsert",
-        ),
-        sa.Column(
             "status",
-            sa.Enum(
-                "pending",
-                "running",
-                "completed",
-                "failed",
-                "cancelled",
-                name="reindexjobstatus",
-            ),
+            sa.String(),
             nullable=False,
-            server_default="pending",
         ),
-        sa.Column("progress", sa.Float(), nullable=False, server_default="0.0"),
         sa.Column("started_at", sa.DateTime(), nullable=True),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.Column("error_message", sa.String(), nullable=True),
@@ -67,5 +50,3 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table("reindex_jobs")
-    sa.Enum(name="reindexjobstatus").drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name="reindexjobmode").drop(op.get_bind(), checkfirst=True)

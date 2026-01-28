@@ -50,6 +50,9 @@ class UserOnboard(UserBase):
     external_id: str
     """Unique identifier from the external authentication provider."""
 
+    service_account: bool = False
+    """Whether the user is a service account."""
+
 
 class UserUpdate(BaseModel):
     """Schema for updating an existing user. All fields are optional."""

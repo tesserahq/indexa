@@ -52,8 +52,14 @@ class ExecuteReindexCommand:
             raise ValueError(f"Reindex job {job_id} not found")
 
         try:
+            # Update status to RUNNING
+            self.reindex_service.update_reindex_job_status(
+                job_id, ReindexJobStatus.RUNNING
+            )
+
             # Get services to process
             services = self._get_services_to_process(job)
+            print(f"Services to process: {services}")
 
             total_indexed = 0
             total_failed = 0
@@ -62,6 +68,7 @@ class ExecuteReindexCommand:
             for service in services:
                 # Get entity types to process
                 entity_types = job.entity_types or self._get_all_entity_types(service)
+                print(f"Entity types to process: {entity_types}")
 
                 for entity_type in entity_types:
                     # Process paginated batches
@@ -81,13 +88,8 @@ class ExecuteReindexCommand:
 
                         total_indexed += result.get("indexed", 0)
                         total_failed += result.get("failed", 0)
-
-                        # Update progress (rough estimate)
-                        # TODO: More accurate progress calculation
-                        self.reindex_service.update_reindex_job_progress(
-                            job_id,
-                            min(0.9, (page * per_page) / 10000.0),  # Rough estimate
-                        )
+                        print(f"Total indexed: {total_indexed}")
+                        print(f"Total failed: {total_failed}")
 
                         # Check if there are more pages
                         total_in_page = result.get("total_in_page", 0)
@@ -100,7 +102,6 @@ class ExecuteReindexCommand:
             self.reindex_service.update_reindex_job_status(
                 job_id, ReindexJobStatus.COMPLETED
             )
-            self.reindex_service.update_reindex_job_progress(job_id, 1.0)
 
             self.logger.info(f"Reindex job {job_id} completed successfully")
 
@@ -117,6 +118,9 @@ class ExecuteReindexCommand:
     def _get_services_to_process(self, job):
         """Get list of domain services to process for the job."""
         all_services = self.domain_service_service.get_all_enabled_services()
+
+        print(f"All services: {all_services}")
+        print(f"Domains: {job.domains}")
 
         if job.domains:
             # Filter by domains

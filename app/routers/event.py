@@ -16,7 +16,6 @@ from app.commands.index_entity_command import IndexEntityCommand
 from app.routers.utils.dependencies import get_event_by_id
 from fastapi import Request
 
-
 router = APIRouter(
     prefix="/events",
     tags=["events"],

@@ -5,7 +5,7 @@ Service for managing reindex jobs (database-only).
 from typing import Optional
 from uuid import UUID
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
 
 from app.models.reindex_job import ReindexJob, ReindexJobStatus
 from app.schemas.reindex_job import ReindexJobCreate
@@ -51,6 +51,16 @@ class ReindexService(SoftDeleteService[ReindexJob]):
             Optional[ReindexJob]: The job or None if not found
         """
         return self.db.query(ReindexJob).filter(ReindexJob.id == job_id).first()
+
+    def get_reindex_jobs_query(self) -> Query:
+        """
+        Get a query for all reindex jobs, ordered by created_at descending.
+        Useful for pagination with fastapi-pagination.
+
+        Returns:
+            Query: SQLAlchemy query object for reindex jobs
+        """
+        return self.db.query(ReindexJob).order_by(ReindexJob.created_at.desc())
 
     def update_reindex_job_progress(
         self, job_id: UUID, progress: float, status: Optional[ReindexJobStatus] = None

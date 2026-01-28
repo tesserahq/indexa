@@ -2,18 +2,16 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel
-from app.models.reindex_job import ReindexJobStatus, ReindexJobMode
+from app.constants.reindex_job_status import ReindexJobStatus
 
 
 class ReindexJobBase(BaseModel):
     """Base reindex job model."""
 
-    scope: str
     domains: Optional[List[str]] = None
     entity_types: Optional[List[str]] = None
     updated_after: Optional[datetime] = None
     updated_before: Optional[datetime] = None
-    mode: ReindexJobMode = ReindexJobMode.UPSERT
 
 
 class ReindexJobCreate(ReindexJobBase):
@@ -27,7 +25,6 @@ class ReindexJobInDB(ReindexJobBase):
 
     id: UUID
     status: ReindexJobStatus
-    progress: float
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error_message: Optional[str] = None
@@ -48,7 +45,6 @@ class ReindexJobStatusResponse(BaseModel):
 
     id: UUID
     status: ReindexJobStatus
-    progress: float
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error_message: Optional[str] = None

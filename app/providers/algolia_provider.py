@@ -10,7 +10,6 @@ from algoliasearch.exceptions import AlgoliaException
 from app.providers.base import SearchProvider
 from app.config import Settings
 
-
 logger = logging.getLogger(__name__)
 
 
