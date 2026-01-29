@@ -47,7 +47,6 @@ class DomainServiceClient:
         """
         try:
             m2m_token = M2MTokenClient().get_token_sync().access_token
-            print("m2m_token: ", m2m_token)
             return {"Authorization": f"Bearer {m2m_token}"}
         except Exception as e:
             logger.error(f"Failed to get M2M token: {e}", exc_info=True)

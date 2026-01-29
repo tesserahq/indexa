@@ -10,7 +10,7 @@ from fastapi_pagination import add_pagination
 from .routers import (
     event,
     domain_service,
-    reindex,
+    reindex_job,
     provider,
 )
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -40,11 +40,7 @@ def create_app(testing: bool = False, auth_middleware=None) -> FastAPI:
     app = FastAPI()
     if settings.is_production:
         # Initialize Rollbar SDK with your server-side access token
-        rollbar.init(
-            settings.rollbar_access_token,
-            environment=settings.environment,
-            handler="async",
-        )
+        rollbar.init(settings.rollbar_access_token, environment=settings.environment)
 
         # Report ERROR and above to Rollbar
         rollbar_handler = RollbarHandler()
@@ -66,12 +62,10 @@ def create_app(testing: bool = False, auth_middleware=None) -> FastAPI:
 
         app.add_middleware(
             UserOnboardingMiddleware,
-            identies_base_url=settings.identies_base_url,
             user_service_factory=user_service_factory,
         )
         app.add_middleware(
             AuthenticationMiddleware,
-            identies_base_url=settings.identies_base_url,
             skip_paths=SKIP_AUTH_PATHS,
             user_service_factory=user_service_factory,
         )
@@ -96,7 +90,7 @@ def create_app(testing: bool = False, auth_middleware=None) -> FastAPI:
 
     app.include_router(event.router)
     app.include_router(domain_service.router)
-    app.include_router(reindex.router)
+    app.include_router(reindex_job.router)
     app.include_router(provider.router)
 
     register_exception_handlers(app)
