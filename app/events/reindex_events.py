@@ -38,6 +38,7 @@ def build_reindex_job_started_event(
     return Event(
         source=event_source(f"/reindex/{job_id}"),
         event_type=event_type(REINDEX_JOB_STARTED),
+        privy=True,
         event_data={
             "job_id": str(job_id),
             "scope": scope,
@@ -80,6 +81,7 @@ def build_reindex_job_completed_event(
     return Event(
         source=event_source(f"/reindex/{job_id}"),
         event_type=event_type(REINDEX_JOB_COMPLETED),
+        privy=True,
         event_data={
             "job_id": str(job_id),
             "scope": scope,
@@ -119,6 +121,7 @@ def build_reindex_job_failed_event(
     return Event(
         source=event_source(f"/reindex/{job_id}"),
         event_type=event_type(REINDEX_JOB_FAILED),
+        privy=True,
         event_data={
             "job_id": str(job_id),
             "scope": scope,

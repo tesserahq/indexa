@@ -40,6 +40,7 @@ def build_entity_indexed_event(
     return Event(
         source=event_source(f"/indexing/{entity_type}/{entity_id}"),
         event_type=event_type(ENTITY_INDEXED),
+        privy=True,
         event_data={
             "entity_type": entity_type,
             "entity_id": entity_id,
@@ -87,6 +88,7 @@ def build_entity_indexing_failed_event(
     return Event(
         source=event_source(f"/indexing/{entity_type}/{entity_id}"),
         event_type=event_type(ENTITY_INDEXING_FAILED),
+        privy=True,
         event_data={
             "entity_type": entity_type,
             "entity_id": entity_id,

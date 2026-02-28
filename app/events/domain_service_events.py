@@ -42,6 +42,7 @@ def build_domain_service_created_event(
     return Event(
         source=event_source(f"/domain-services/{domain_service.id}"),
         event_type=event_type(DOMAIN_SERVICE_CREATED),
+        privy=True,
         event_data=event_data,
         subject=f"/domain-services/{domain_service.id}",
         user_id=str(created_by.id),
@@ -83,6 +84,7 @@ def build_domain_service_updated_event(
     return Event(
         source=event_source(f"/domain-services/{domain_service.id}"),
         event_type=event_type(DOMAIN_SERVICE_UPDATED),
+        privy=True,
         event_data=event_data,
         subject=f"/domain-services/{domain_service.id}",
         user_id=str(updated_by.id),
@@ -124,6 +126,7 @@ def build_domain_service_deleted_event(
     return Event(
         source=event_source(f"/domain-services/{domain_service.id}"),
         event_type=event_type(DOMAIN_SERVICE_DELETED),
+        privy=True,
         event_data=event_data,
         subject=f"/domain-services/{domain_service.id}",
         user_id=str(deleted_by.id),
