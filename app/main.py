@@ -6,6 +6,7 @@ import rollbar
 from rollbar.logger import RollbarHandler
 from rollbar.contrib.fastapi import ReporterMiddleware as RollbarMiddleware
 from fastapi_pagination import add_pagination
+from tessera_sdk.fastapi import get_livez_readyz_router
 
 from .routers import (
     event,
@@ -20,7 +21,7 @@ from app.core.logging_config import get_logger
 from app.db import db_manager
 from app.utils.metrics import PrometheusMiddleware, metrics
 
-SKIP_AUTH_PATHS = ["/health", "/openapi.json", "/docs", "/metrics"]
+SKIP_AUTH_PATHS = ["/livez", "/readyz", "/openapi.json", "/docs", "/metrics"]
 
 
 class EndpointFilter(logging.Filter):
@@ -92,6 +93,7 @@ def create_app(testing: bool = False, auth_middleware=None) -> FastAPI:
     app.include_router(domain_service.router)
     app.include_router(reindex_job.router)
     app.include_router(provider.router)
+    app.include_router(get_livez_readyz_router())
 
     register_exception_handlers(app)
 
