@@ -6,9 +6,9 @@ from app.db import get_db
 from app.models.domain_service import DomainService
 from app.models.event import Event
 from app.models.reindex_job import ReindexJob
-from app.services.domain_service_service import DomainServiceService
-from app.services.event_service import EventService
-from app.services.reindex_service import ReindexService
+from app.repositories.domain_service_repository import DomainServiceRepository
+from app.repositories.event_repository import EventRepository
+from app.repositories.reindex_repository import ReindexRepository
 from app.exceptions.handlers import ResourceNotFoundError
 
 
@@ -28,7 +28,7 @@ def get_domain_service_by_id(
     Raises:
         HTTPException: If the domain service is not found
     """
-    domain_service = DomainServiceService(db).get_service(service_id)
+    domain_service = DomainServiceRepository(db).get_service(service_id)
     if domain_service is None:
         raise HTTPException(status_code=404, detail="Domain service not found")
     return domain_service
@@ -50,7 +50,7 @@ def get_event_by_id(
     Raises:
         ResourceNotFoundError: If the event is not found
     """
-    event = EventService(db).get_event(event_id)
+    event = EventRepository(db).get_event(event_id)
     if event is None:
         raise ResourceNotFoundError(f"Event with id {event_id} not found")
     return event
@@ -72,7 +72,7 @@ def get_reindex_job_by_id(
     Raises:
         ResourceNotFoundError: If the reindex job is not found
     """
-    job = ReindexService(db).get_reindex_job(job_id)
+    job = ReindexRepository(db).get_reindex_job(job_id)
     if job is None:
         raise ResourceNotFoundError(f"Reindex job with id {job_id} not found")
     return job

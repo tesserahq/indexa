@@ -13,7 +13,7 @@ from app.schemas.reindex_job import (
     ReindexJobCreate,
     ReindexJobStatusResponse,
 )
-from app.services.reindex_service import ReindexService
+from app.repositories.reindex_repository import ReindexRepository
 from app.models.reindex_job import ReindexJob as ReindexJobModel, ReindexJobStatus
 from app.auth.rbac import build_rbac_dependencies
 from app.tasks.reindex_task import reindex_task
@@ -45,7 +45,7 @@ def create_reindex_job(
     _authorized: bool = Depends(rbac["create"]),
 ) -> ReindexJob:
     """Create and trigger a reindex job."""
-    service = ReindexService(db)
+    service = ReindexRepository(db)
     created_job = service.create_reindex_job(job_data)
 
     # Trigger async task
@@ -61,7 +61,7 @@ def list_reindex_jobs(
     _authorized: bool = Depends(rbac["read"]),
 ) -> Page[ReindexJob]:
     """List all reindex jobs."""
-    service = ReindexService(db)
+    service = ReindexRepository(db)
     return paginate(db, service.get_reindex_jobs_query(), params)
 
 
@@ -91,7 +91,7 @@ def cancel_reindex_job(
             detail=f"Cannot cancel job with status {job.status}",
         )
 
-    ReindexService(db).update_reindex_job_status(job.id, ReindexJobStatus.CANCELLED)
+    ReindexRepository(db).update_reindex_job_status(job.id, ReindexJobStatus.CANCELLED)
     # TODO: Cancel the Celery task if running
 
 

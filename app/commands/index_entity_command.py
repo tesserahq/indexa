@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.event import Event
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.domain_service_repository import DomainServiceRepository
 from app.utils.event_router import route_event
 from app.utils.domain_service_client import DomainServiceClient
 from app.utils.document_builder import (
@@ -41,7 +41,7 @@ class IndexEntityCommand:
             nats_publisher if nats_publisher is not None else NatsEventPublisher()
         )
         self.logger = get_logger()
-        self.domain_service_service = DomainServiceService(db)
+        self.domain_service_repository = DomainServiceRepository(db)
         self.domain_client = DomainServiceClient()
         self.settings = get_settings()
         self.settings_manager = SettingsManager(db)
@@ -54,7 +54,7 @@ class IndexEntityCommand:
             event: The event to process
         """
         # Route event to domain service
-        domain_service = route_event(event, self.domain_service_service)
+        domain_service = route_event(event, self.domain_service_repository)
         if not domain_service:
             self.logger.warning(
                 f"No domain service found for event type: {event.event_type}"

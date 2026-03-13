@@ -23,10 +23,10 @@ flowchart TD
     DS[Domain Services] -->|Emit CloudEvents| NATS[NATS/JetStream]
     NATS -->|Subscribe| NW[NATS Worker]
     NW -->|Dispatch| CT[Celery Task]
-    CT -->|Store| ES[EventService]
+    CT -->|Store| ES[EventRepository]
     CT -->|Trigger| IC[IndexEntityCommand]
     IC -->|Route| ER[EventRouter]
-    ER -->|Resolve| DSS[DomainServiceService]
+    ER -->|Resolve| DSS[DomainServiceRepository]
     IC -->|Call API| DSC[DomainServiceClient]
     DSC -->|GET /indexes/type/id| DSAPI[Domain Service API]
     DSAPI -->|JSON Response| IC
@@ -38,7 +38,7 @@ flowchart TD
     IC -->|Upsert| SP2[TypesenseProvider]
     IC -->|Emit Event| NATS
     
-    Admin[Admin API] -->|Create Job| RS[ReindexService]
+    Admin[Admin API] -->|Create Job| RS[ReindexRepository]
     RS -->|Execute| ERC[ExecuteReindexCommand]
     ERC -->|Batch| BIC[BatchIndexEntitiesCommand]
     ERC -->|Emit Event| NATS
@@ -52,7 +52,7 @@ flowchart TD
 
 **Key Components**:
 - `DomainService` model: Stores service registration data
-- `DomainServiceService`: Database operations for service management
+- `DomainServiceRepository`: Database operations for service management
 - Domain Service Router: Admin API for CRUD operations
 
 **API Endpoints**:
@@ -150,7 +150,7 @@ flowchart TD
 
 **Key Components**:
 - `ReindexJob` model: Tracks reindex jobs
-- `ReindexService`: Database operations for job management
+- `ReindexRepository`: Database operations for job management
 - `ExecuteReindexCommand`: Command for executing reindex jobs
 - `BatchIndexEntitiesCommand`: Command for batch indexing
 
@@ -221,10 +221,10 @@ flowchart TD
 
 **Principle**: Services are database-only; commands handle external interactions.
 
-**Services** (Database-only):
-- `DomainServiceService`
-- `ReindexService`
-- `IndexingService`
+**Repositories** (Database-only):
+- `DomainServiceRepository`
+- `ReindexRepository`
+- `IndexingRepository`
 
 **Commands** (External interactions + event emission):
 - `IndexEntityCommand`: Indexes a single entity, calls domain APIs, interacts with providers, emits events

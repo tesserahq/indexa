@@ -3,15 +3,15 @@ from uuid import UUID
 from sqlalchemy.orm import Query, Session
 from app.models.domain_service import DomainService
 from app.schemas.domain_service import DomainServiceCreate, DomainServiceUpdate
-from app.services.soft_delete_service import SoftDeleteService
+from app.repositories.soft_delete_repository import SoftDeleteRepository
 
 
-class DomainServiceService(SoftDeleteService[DomainService]):
-    """Service class for managing domain service CRUD operations."""
+class DomainServiceRepository(SoftDeleteRepository[DomainService]):
+    """Repository class for managing domain service CRUD operations."""
 
     def __init__(self, db: Session):
         """
-        Initialize the domain service service.
+        Initialize the domain service repository.
 
         Args:
             db: Database session

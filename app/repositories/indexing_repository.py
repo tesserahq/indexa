@@ -1,20 +1,20 @@
 """
-Service for tracking indexing operations (database-only).
+Repository for tracking indexing operations (database-only).
 """
 
 from sqlalchemy.orm import Session
 
-# This service is database-only for now
+# This repository is database-only for now
 # Future: Could track indexing history, status, etc.
 # For now, it's a placeholder for future indexing state tracking
 
 
-class IndexingService:
-    """Service for managing indexing state in the database."""
+class IndexingRepository:
+    """Repository for managing indexing state in the database."""
 
     def __init__(self, db: Session):
         """
-        Initialize the indexing service.
+        Initialize the indexing repository.
 
         Args:
             db: Database session

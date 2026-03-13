@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.models.domain_service import DomainService
 from app.models.user import User
 from app.schemas.domain_service import DomainServiceUpdate
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.domain_service_repository import DomainServiceRepository
 from app.exceptions.handlers import ResourceNotFoundError
 from app.events.domain_service_events import build_domain_service_updated_event
 from tessera_sdk.events.nats_router import NatsEventPublisher
@@ -38,7 +38,7 @@ class UpdateDomainServiceCommand:
             nats_publisher if nats_publisher is not None else NatsEventPublisher()
         )
         self.logger = logging.getLogger(__name__)
-        self.service = DomainServiceService(db)
+        self.repository = DomainServiceRepository(db)
 
     def execute(
         self,
@@ -63,7 +63,7 @@ class UpdateDomainServiceCommand:
         """
         try:
             self.logger.info(f"Updating domain service with id: {service_id}")
-            updated_service = self.service.update_service(service_id, service_data)
+            updated_service = self.repository.update_service(service_id, service_data)
             if not updated_service:
                 raise ResourceNotFoundError(
                     f"Domain service with id {service_id} not found"

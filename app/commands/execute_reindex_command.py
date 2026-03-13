@@ -7,8 +7,8 @@ from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 
-from app.services.reindex_service import ReindexService
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.reindex_repository import ReindexRepository
+from app.repositories.domain_service_repository import DomainServiceRepository
 from app.commands.batch_index_entities_command import BatchIndexEntitiesCommand
 from app.models.reindex_job import ReindexJobStatus
 from tessera_sdk.events.nats_router import NatsEventPublisher
@@ -36,8 +36,8 @@ class ExecuteReindexCommand:
             nats_publisher if nats_publisher is not None else NatsEventPublisher()
         )
         self.logger = logging.getLogger(__name__)
-        self.reindex_service = ReindexService(db)
-        self.domain_service_service = DomainServiceService(db)
+        self.reindex_repository = ReindexRepository(db)
+        self.domain_service_repository = DomainServiceRepository(db)
         self.batch_command = BatchIndexEntitiesCommand(db)
 
     def execute(self, job_id: UUID) -> None:
@@ -47,13 +47,13 @@ class ExecuteReindexCommand:
         Args:
             job_id: The ID of the reindex job to execute
         """
-        job = self.reindex_service.get_reindex_job(job_id)
+        job = self.reindex_repository.get_reindex_job(job_id)
         if not job:
             raise ValueError(f"Reindex job {job_id} not found")
 
         try:
             # Update status to RUNNING
-            self.reindex_service.update_reindex_job_status(
+            self.reindex_repository.update_reindex_job_status(
                 job_id, ReindexJobStatus.RUNNING
             )
 
@@ -99,7 +99,7 @@ class ExecuteReindexCommand:
                         page += 1
 
             # Update status to COMPLETED
-            self.reindex_service.update_reindex_job_status(
+            self.reindex_repository.update_reindex_job_status(
                 job_id, ReindexJobStatus.COMPLETED
             )
 
@@ -109,7 +109,7 @@ class ExecuteReindexCommand:
             self.logger.error(f"Reindex job {job_id} failed: {e}", exc_info=True)
 
             # Update status to FAILED
-            self.reindex_service.update_reindex_job_status(
+            self.reindex_repository.update_reindex_job_status(
                 job_id, ReindexJobStatus.FAILED, error_message=str(e)
             )
 
@@ -117,7 +117,7 @@ class ExecuteReindexCommand:
 
     def _get_services_to_process(self, job):
         """Get list of domain services to process for the job."""
-        all_services = self.domain_service_service.get_all_enabled_services()
+        all_services = self.domain_service_repository.get_all_enabled_services()
 
         print(f"All services: {all_services}")
         print(f"Domains: {job.domains}")
