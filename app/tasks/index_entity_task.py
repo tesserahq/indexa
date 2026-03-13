@@ -8,7 +8,7 @@ from app.core.celery_app import celery_app
 from app.core.logging_config import get_logger
 from app.db import SessionLocal
 from app.commands.index_entity_command import IndexEntityCommand
-from app.services.event_service import EventService
+from app.repositories.event_repository import EventRepository
 
 logger = get_logger("index_entity_task")
 
@@ -21,8 +21,8 @@ def index_entity_task(event_id: str) -> None:
     db = SessionLocal()
     try:
         # Retrieve the event from the database
-        event_service = EventService(db)
-        event = event_service.get_event(UUID(event_id))
+        event_repository = EventRepository(db)
+        event = event_repository.get_event(UUID(event_id))
 
         if not event:
             logger.error(f"Event not found: {event_id}")

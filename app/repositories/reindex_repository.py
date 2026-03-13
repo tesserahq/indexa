@@ -1,5 +1,5 @@
 """
-Service for managing reindex jobs (database-only).
+Repository for managing reindex jobs (database-only).
 """
 
 from typing import Optional
@@ -9,15 +9,15 @@ from sqlalchemy.orm import Query, Session
 
 from app.models.reindex_job import ReindexJob, ReindexJobStatus
 from app.schemas.reindex_job import ReindexJobCreate
-from app.services.soft_delete_service import SoftDeleteService
+from app.repositories.soft_delete_repository import SoftDeleteRepository
 
 
-class ReindexService(SoftDeleteService[ReindexJob]):
-    """Service for managing reindex job CRUD operations."""
+class ReindexRepository(SoftDeleteRepository[ReindexJob]):
+    """Repository for managing reindex job CRUD operations."""
 
     def __init__(self, db: Session):
         """
-        Initialize the reindex service.
+        Initialize the reindex repository.
 
         Args:
             db: Database session

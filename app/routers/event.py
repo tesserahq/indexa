@@ -10,7 +10,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate  # type: ignore[import-no
 from app.db import get_db
 from app.schemas.event import Event as EventSchema
 from app.models.event import Event
-from app.services.event_service import EventService
+from app.repositories.event_repository import EventRepository
 from app.auth.rbac import build_rbac_dependencies
 from app.commands.index_entity_command import IndexEntityCommand
 from app.routers.utils.dependencies import get_event_by_id
@@ -84,7 +84,7 @@ def list_events(
                 detail="labels parameter must be valid JSON",
             )
 
-    query = EventService(db).get_events_by_tags_and_labels_query(
+    query = EventRepository(db).get_events_by_tags_and_labels_query(
         tags=tags, labels=labels_payload, privy=False, project_id=project_id
     )
     return paginate(db, query, params)

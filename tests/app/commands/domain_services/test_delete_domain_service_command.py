@@ -6,7 +6,7 @@ from app.commands.domain_services.delete_domain_service_command import (
 )
 from app.events.domain_service_events import DOMAIN_SERVICE_DELETED
 from app.exceptions.handlers import ResourceNotFoundError
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.domain_service_repository import DomainServiceRepository
 from tessera_sdk.events.event import event_type
 
 
@@ -19,7 +19,7 @@ def test_delete_domain_service_command_deletes_and_publishes(
 
     command.execute(setup_domain_service.id, deleted_by=test_user)
 
-    service = DomainServiceService(db).get_service(setup_domain_service.id)
+    service = DomainServiceRepository(db).get_service(setup_domain_service.id)
     assert service is None
 
     assert len(dummy_domain_service_publisher.published) == 1

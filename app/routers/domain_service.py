@@ -11,7 +11,7 @@ from app.schemas.domain_service import (
     DomainServiceCreate,
     DomainServiceUpdate,
 )
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.domain_service_repository import DomainServiceRepository
 from app.auth.rbac import build_rbac_dependencies
 from app.commands.domain_services.create_domain_service_command import (
     CreateDomainServiceCommand,
@@ -66,7 +66,7 @@ def list_domain_services(
     _authorized: bool = Depends(rbac["read"]),
 ) -> Page[DomainService]:
     """List all registered domain services."""
-    service = DomainServiceService(db)
+    service = DomainServiceRepository(db)
     query = service.get_services_query()
     return paginate(db, query, params)
 

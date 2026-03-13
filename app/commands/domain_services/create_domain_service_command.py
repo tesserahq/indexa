@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.models.domain_service import DomainService
 from app.models.user import User
 from app.schemas.domain_service import DomainServiceCreate
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.domain_service_repository import DomainServiceRepository
 from app.events.domain_service_events import build_domain_service_created_event
 from tessera_sdk.events.nats_router import NatsEventPublisher
 
@@ -36,7 +36,7 @@ class CreateDomainServiceCommand:
             nats_publisher if nats_publisher is not None else NatsEventPublisher()
         )
         self.logger = logging.getLogger(__name__)
-        self.service = DomainServiceService(db)
+        self.repository = DomainServiceRepository(db)
 
     def execute(
         self, service_data: DomainServiceCreate, created_by: User
@@ -56,7 +56,7 @@ class CreateDomainServiceCommand:
         """
         try:
             self.logger.info(f"Creating domain service: {service_data.name}")
-            created_service = self.service.register_service(service_data)
+            created_service = self.repository.register_service(service_data)
             self.logger.info(
                 f"Successfully created domain service with id: {created_service.id}"
             )

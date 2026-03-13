@@ -6,11 +6,11 @@ from typing import Optional
 
 from app.models.event import Event
 from app.models.domain_service import DomainService
-from app.services.domain_service_service import DomainServiceService
+from app.repositories.domain_service_repository import DomainServiceRepository
 
 
 def route_event(
-    event: Event, domain_service_service: DomainServiceService
+    event: Event, domain_service_repository: DomainServiceRepository
 ) -> Optional[DomainService]:
     """
     Route an event to its owning domain service.
@@ -19,9 +19,9 @@ def route_event(
 
     Args:
         event: The event to route
-        domain_service_service: The domain service service for lookups
+        domain_service_repository: The domain service repository for lookups
 
     Returns:
         Optional[DomainService]: The matching service or None if not found (dead-letter)
     """
-    return domain_service_service.resolve_service_for_event(event.event_type)
+    return domain_service_repository.resolve_service_for_event(event.event_type)
