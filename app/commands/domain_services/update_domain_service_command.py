@@ -13,7 +13,7 @@ from app.schemas.domain_service import DomainServiceUpdate
 from app.repositories.domain_service_repository import DomainServiceRepository
 from app.exceptions.handlers import ResourceNotFoundError
 from app.events.domain_service_events import build_domain_service_updated_event
-from tessera_sdk.events.nats_router import NatsEventPublisher
+from tessera_sdk.infra.events.nats_router import NatsEventPublisher
 
 logger = logging.getLogger(__name__)
 

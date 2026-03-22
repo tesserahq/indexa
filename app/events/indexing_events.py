@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Optional
 from uuid import UUID
 
-from tessera_sdk.events.event import Event, event_type, event_source
+from tessera_sdk.infra.events.event import Event, event_type, event_source
 
 # Indexing event types
 ENTITY_INDEXED = "indexing.entity.indexed"

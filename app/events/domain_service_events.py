@@ -9,7 +9,7 @@ from app.models.user import User as UserModel
 from app.schemas.domain_service import DomainService
 from app.schemas.user import User
 
-from tessera_sdk.events.event import Event, event_type, event_source
+from tessera_sdk.infra.events.event import Event, event_type, event_source
 
 # Domain service event types
 DOMAIN_SERVICE_CREATED = "indexing.domain_service.created"

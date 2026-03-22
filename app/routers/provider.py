@@ -13,7 +13,7 @@ from app.providers.factory import get_providers, is_provider_enabled
 from app.config import get_settings
 from app.settings_manager import SettingsManager
 from app.auth.rbac import build_rbac_dependencies
-from tessera_sdk.utils.auth import get_current_user
+from tessera_sdk.server.dependencies.auth import get_current_user
 
 router = APIRouter(
     prefix="/providers",

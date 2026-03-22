@@ -7,7 +7,7 @@ from app.commands.domain_services.update_domain_service_command import (
 from app.events.domain_service_events import DOMAIN_SERVICE_UPDATED
 from app.exceptions.handlers import ResourceNotFoundError
 from app.schemas.domain_service import DomainServiceUpdate
-from tessera_sdk.events.event import event_type
+from tessera_sdk.infra.events.event import event_type
 
 
 def test_update_domain_service_command_updates_and_publishes(

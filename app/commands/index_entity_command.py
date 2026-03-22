@@ -17,7 +17,7 @@ from app.utils.document_builder import (
 from app.providers.factory import get_providers
 from app.config import get_settings
 from app.settings_manager import SettingsManager
-from tessera_sdk.events.nats_router import NatsEventPublisher
+from tessera_sdk.infra.events.nats_router import NatsEventPublisher
 from app.core.logging_config import get_logger
 
 

@@ -11,7 +11,7 @@ from app.repositories.reindex_repository import ReindexRepository
 from app.repositories.domain_service_repository import DomainServiceRepository
 from app.commands.batch_index_entities_command import BatchIndexEntitiesCommand
 from app.models.reindex_job import ReindexJobStatus
-from tessera_sdk.events.nats_router import NatsEventPublisher
+from tessera_sdk.infra.events.nats_router import NatsEventPublisher
 
 logger = logging.getLogger(__name__)
 

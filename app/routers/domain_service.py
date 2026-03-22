@@ -25,7 +25,7 @@ from app.commands.domain_services.delete_domain_service_command import (
 from app.routers.utils.dependencies import get_domain_service_by_id
 from app.models.domain_service import DomainService as DomainServiceModel
 from app.models.user import User
-from tessera_sdk.utils.auth import get_current_user
+from tessera_sdk.server.dependencies.auth import get_current_user
 
 router = APIRouter(
     prefix="/domain-services",

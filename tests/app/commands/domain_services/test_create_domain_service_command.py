@@ -3,7 +3,7 @@ from app.commands.domain_services.create_domain_service_command import (
 )
 from app.events.domain_service_events import DOMAIN_SERVICE_CREATED
 from app.schemas.domain_service import DomainServiceCreate
-from tessera_sdk.events.event import event_type
+from tessera_sdk.infra.events.event import event_type
 
 
 def test_create_domain_service_command_creates_and_publishes(
