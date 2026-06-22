@@ -1,0 +1,10 @@
+site_name: Indexa documentation
+site_description: Search indexing service — internal engineering reference
+
+nav:
+  - Architecture: architecture.md
+  - Design: design.md
+
+
+plugins:
+  - techdocs-core
