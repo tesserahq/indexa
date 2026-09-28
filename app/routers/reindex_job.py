@@ -6,7 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate  # type: ignore[import-no
 from sqlalchemy.orm import Session
 
 from app.commands.execute_reindex_command import ExecuteReindexCommand
-from app.db import get_db
+from app.db import DbSession, on_commit
 from app.routers.utils.dependencies import get_reindex_job_by_id
 from app.schemas.reindex_job import (
     ReindexJob,
@@ -41,25 +41,22 @@ rbac = build_rbac_dependencies(
 @router.post("", response_model=ReindexJob, status_code=status.HTTP_201_CREATED)
 def create_reindex_job(
     job_data: ReindexJobCreate,
-    db: Session = Depends(get_db),
+    db: DbSession,
     _authorized: bool = Depends(rbac["create"]),
 ) -> ReindexJob:
     """Create and trigger a reindex job."""
     service = ReindexRepository(db)
     created_job = service.create_reindex_job(job_data)
 
-    # Trigger async task
-    reindex_task.delay(str(created_job.id))
+    # Enqueue only after the job row commits, so the worker can load it.
+    job_id = str(created_job.id)
+    on_commit(lambda: reindex_task.delay(job_id))
 
     return created_job
 
 
 @router.get("", response_model=Page[ReindexJob], status_code=status.HTTP_200_OK)
-def list_reindex_jobs(
-    params: Params = Depends(),
-    db: Session = Depends(get_db),
-    _authorized: bool = Depends(rbac["read"]),
-) -> Page[ReindexJob]:
+def list_reindex_jobs(db: DbSession, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])) -> Page[ReindexJob]:
     """List all reindex jobs."""
     service = ReindexRepository(db)
     return paginate(db, service.get_reindex_jobs_query(), params)
@@ -79,11 +76,7 @@ def get_reindex_job(
 
 
 @router.post("/{job_id}/cancel", status_code=status.HTTP_204_NO_CONTENT)
-def cancel_reindex_job(
-    job: ReindexJobModel = Depends(get_reindex_job_by_id),
-    db: Session = Depends(get_db),
-    _authorized: bool = Depends(rbac["update"]),
-) -> None:
+def cancel_reindex_job(db: DbSession, job: ReindexJobModel = Depends(get_reindex_job_by_id), _authorized: bool = Depends(rbac["update"])) -> None:
     """Cancel a running reindex job."""
     if job.status not in (ReindexJobStatus.PENDING, ReindexJobStatus.RUNNING):
         raise HTTPException(
@@ -96,11 +89,7 @@ def cancel_reindex_job(
 
 
 @router.post("/{job_id}/run", status_code=status.HTTP_204_NO_CONTENT)
-def run_reindex_job(
-    job: ReindexJobModel = Depends(get_reindex_job_by_id),
-    db: Session = Depends(get_db),
-    _authorized: bool = Depends(rbac["update"]),
-) -> None:
+def run_reindex_job(db: DbSession, job: ReindexJobModel = Depends(get_reindex_job_by_id), _authorized: bool = Depends(rbac["update"])) -> None:
     """Run a reindex job."""
     command = ExecuteReindexCommand(db)
     command.execute(job.id)

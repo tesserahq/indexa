@@ -30,7 +30,7 @@ class DomainServiceRepository(SoftDeleteRepository[DomainService]):
         """
         db_service = DomainService(**service_data.model_dump())
         self.db.add(db_service)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(db_service)
         return db_service
 
@@ -91,7 +91,7 @@ class DomainServiceRepository(SoftDeleteRepository[DomainService]):
             update_data = service_data.model_dump(exclude_unset=True)
             for key, value in update_data.items():
                 setattr(db_service, key, value)
-            self.db.commit()
+            self.db.flush()
             self.db.refresh(db_service)
         return db_service
 

@@ -11,6 +11,7 @@ from app.models.user import User
 from app.schemas.domain_service import DomainServiceCreate
 from app.repositories.domain_service_repository import DomainServiceRepository
 from app.events.domain_service_events import build_domain_service_created_event
+from app.db import on_commit
 from tessera_sdk.infra.events.nats_router import NatsEventPublisher
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,13 @@ class CreateDomainServiceCommand:
             created_event = build_domain_service_created_event(
                 created_service, created_by=created_by
             )
-            self.nats_publisher.publish_sync(created_event, created_event.event_type)
+            publisher = self.nats_publisher
+
+            def publish() -> None:
+                publisher.publish_sync(created_event, created_event.event_type)
+
+            # Dispatch only after the transaction commits; dropped on rollback.
+            on_commit(publish)
 
             return created_service
         except Exception as e:

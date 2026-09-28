@@ -36,7 +36,7 @@ class ReindexRepository(SoftDeleteRepository[ReindexJob]):
         """
         db_job = ReindexJob(**job_data.model_dump())
         self.db.add(db_job)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(db_job)
         return db_job
 
@@ -78,7 +78,7 @@ class ReindexRepository(SoftDeleteRepository[ReindexJob]):
             job.progress = progress
             if status:
                 job.status = status
-            self.db.commit()
+            self.db.flush()
 
     def update_reindex_job_status(
         self,
@@ -109,4 +109,4 @@ class ReindexRepository(SoftDeleteRepository[ReindexJob]):
             ):
                 job.completed_at = datetime.now(timezone.utc)
 
-            self.db.commit()
+            self.db.flush()

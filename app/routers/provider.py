@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from app.db import get_db
+from app.db import DbSession
 from app.schemas.provider import ProviderStatus
 from app.schemas.common import ListResponse
 from app.providers.factory import get_providers, is_provider_enabled
@@ -35,7 +35,7 @@ rbac = build_rbac_dependencies(
 
 @router.get("", response_model=ListResponse[ProviderStatus])
 def list_providers(
-    db: Session = Depends(get_db),
+    db: DbSession,
     _authorized: bool = Depends(rbac["read"]),
     _current_user=Depends(get_current_user),
 ):

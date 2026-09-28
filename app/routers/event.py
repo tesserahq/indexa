@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from fastapi_pagination import Page, Params  # type: ignore[import-not-found]
 from fastapi_pagination.ext.sqlalchemy import paginate  # type: ignore[import-not-found]
 
-from app.db import get_db
+from app.db import DbSession
 from app.schemas.event import Event as EventSchema
 from app.models.event import Event
 from app.repositories.event_repository import EventRepository
@@ -45,27 +45,20 @@ rbac = build_rbac_dependencies(
 
 
 @router.get("", response_model=Page[EventSchema], status_code=status.HTTP_200_OK)
-def list_events(
-    project_id: Annotated[
+def list_events(db: DbSession, project_id: Annotated[
         Optional[UUID],
         Query(description="Project ID to filter events by"),
-    ] = None,
-    tags: Annotated[
+    ] = None, tags: Annotated[
         Optional[List[str]],
         Query(
             description="Event tags to match (requires at least one tag if provided)"
         ),
-    ] = None,
-    labels: Annotated[
+    ] = None, labels: Annotated[
         Optional[str],
         Query(
             description="Optional JSON object containing label key/value pairs to match"
         ),
-    ] = None,
-    params: Params = Depends(),
-    db: Session = Depends(get_db),
-    _authorized: bool = Depends(rbac["read"]),
-):
+    ] = None, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])):
     """Return events filtered by user_id OR by tags/labels (not both)."""
 
     labels_payload: Optional[Dict[str, Any]] = None
@@ -94,12 +87,7 @@ def list_events(
     "/{event_id}/index",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def index_event(
-    event_id: UUID,
-    event: Event = Depends(get_event_by_id),
-    db: Session = Depends(get_db),
-    _authorized: bool = Depends(rbac["update"]),
-) -> None:
+def index_event(event_id: UUID, db: DbSession, event: Event = Depends(get_event_by_id), _authorized: bool = Depends(rbac["update"])) -> None:
     """Trigger indexing for a specific event."""
     command = IndexEntityCommand(db)
     command.execute(event)
