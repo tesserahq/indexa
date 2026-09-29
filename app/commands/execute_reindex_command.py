@@ -45,8 +45,8 @@ class ExecuteReindexCommand:
         Execute a reindex job.
 
         A long-running workflow: the RUNNING status and each page are
-        committed as they complete, so no transaction stays open across
-        domain service calls. A failure propagates; the caller records it
+        committed as they complete, so no transaction lasts longer than one
+        page. A failure propagates; the caller records it
         (see app.tasks.reindex_task).
 
         Args:
@@ -60,8 +60,7 @@ class ExecuteReindexCommand:
         self.reindex_repository.update_reindex_job_status(
             job_id, ReindexJobStatus.RUNNING
         )
-        # commit: job_running. Visible while the job runs, and releases the
-        # transaction before the first domain service call.
+        # commit: job_running. Visible while the job runs.
         self.db.commit()
 
         # Get services to process
@@ -93,7 +92,7 @@ class ExecuteReindexCommand:
                         per_page=per_page,
                     )
                     # commit: batch_indexed. Ends the read transaction opened
-                    # for this page before the next domain service call.
+                    # for this page, so no transaction spans more than one page.
                     self.db.commit()
 
                     total_indexed += result.get("indexed", 0)

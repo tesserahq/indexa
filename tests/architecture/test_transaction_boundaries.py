@@ -27,8 +27,8 @@ CONFIG = TransactionGuardConfig(
     # (path relative to app/, function name) -> reason.
     early_commit_allowlist={
         ("commands/execute_reindex_command.py", "execute"): (
-            "long-running reindex: commit RUNNING and each page so no "
-            "transaction stays open across domain service calls"
+            "long-running reindex: commit RUNNING, then each page, so no "
+            "transaction lasts longer than one page"
         ),
     },
 )
