@@ -44,6 +44,11 @@ class ExecuteReindexCommand:
         """
         Execute a reindex job.
 
+        A long-running workflow: the RUNNING status and each page are
+        committed as they complete, so no transaction lasts longer than one
+        page. A failure propagates; the caller records it
+        (see app.tasks.reindex_task).
+
         Args:
             job_id: The ID of the reindex job to execute
         """
@@ -51,69 +56,63 @@ class ExecuteReindexCommand:
         if not job:
             raise ValueError(f"Reindex job {job_id} not found")
 
-        try:
-            # Update status to RUNNING
-            self.reindex_repository.update_reindex_job_status(
-                job_id, ReindexJobStatus.RUNNING
-            )
+        # Update status to RUNNING
+        self.reindex_repository.update_reindex_job_status(
+            job_id, ReindexJobStatus.RUNNING
+        )
+        # commit: job_running. Visible while the job runs.
+        self.db.commit()
 
-            # Get services to process
-            services = self._get_services_to_process(job)
-            print(f"Services to process: {services}")
+        # Get services to process
+        services = self._get_services_to_process(job)
+        print(f"Services to process: {services}")
 
-            total_indexed = 0
-            total_failed = 0
+        total_indexed = 0
+        total_failed = 0
 
-            # Process each service
-            for service in services:
-                # Get entity types to process
-                entity_types = job.entity_types or self._get_all_entity_types(service)
-                print(f"Entity types to process: {entity_types}")
+        # Process each service
+        for service in services:
+            # Get entity types to process
+            entity_types = job.entity_types or self._get_all_entity_types(service)
+            print(f"Entity types to process: {entity_types}")
 
-                for entity_type in entity_types:
-                    # Process paginated batches
-                    page = 1
-                    per_page = 100
+            for entity_type in entity_types:
+                # Process paginated batches
+                page = 1
+                per_page = 100
 
-                    while True:
-                        # Execute batch indexing
-                        result = self.batch_command.execute(
-                            service=service,
-                            entity_type=entity_type,
-                            updated_after=job.updated_after,
-                            updated_before=job.updated_before,
-                            page=page,
-                            per_page=per_page,
-                        )
+                while True:
+                    # Execute batch indexing
+                    result = self.batch_command.execute(
+                        service=service,
+                        entity_type=entity_type,
+                        updated_after=job.updated_after,
+                        updated_before=job.updated_before,
+                        page=page,
+                        per_page=per_page,
+                    )
+                    # commit: batch_indexed. Ends the read transaction opened
+                    # for this page, so no transaction spans more than one page.
+                    self.db.commit()
 
-                        total_indexed += result.get("indexed", 0)
-                        total_failed += result.get("failed", 0)
-                        print(f"Total indexed: {total_indexed}")
-                        print(f"Total failed: {total_failed}")
+                    total_indexed += result.get("indexed", 0)
+                    total_failed += result.get("failed", 0)
+                    print(f"Total indexed: {total_indexed}")
+                    print(f"Total failed: {total_failed}")
 
-                        # Check if there are more pages
-                        total_in_page = result.get("total_in_page", 0)
-                        if total_in_page < per_page:
-                            break  # Last page
+                    # Check if there are more pages
+                    total_in_page = result.get("total_in_page", 0)
+                    if total_in_page < per_page:
+                        break  # Last page
 
-                        page += 1
+                    page += 1
 
-            # Update status to COMPLETED
-            self.reindex_repository.update_reindex_job_status(
-                job_id, ReindexJobStatus.COMPLETED
-            )
+        # Update status to COMPLETED
+        self.reindex_repository.update_reindex_job_status(
+            job_id, ReindexJobStatus.COMPLETED
+        )
 
-            self.logger.info(f"Reindex job {job_id} completed successfully")
-
-        except Exception as e:
-            self.logger.error(f"Reindex job {job_id} failed: {e}", exc_info=True)
-
-            # Update status to FAILED
-            self.reindex_repository.update_reindex_job_status(
-                job_id, ReindexJobStatus.FAILED, error_message=str(e)
-            )
-
-            raise
+        self.logger.info(f"Reindex job {job_id} completed successfully")
 
     def _get_services_to_process(self, job):
         """Get list of domain services to process for the job."""

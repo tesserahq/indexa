@@ -5,7 +5,7 @@ from fastapi_pagination import Page, Params  # type: ignore[import-not-found]
 from fastapi_pagination.ext.sqlalchemy import paginate  # type: ignore[import-not-found]
 from sqlalchemy.orm import Session
 
-from app.db import get_db
+from app.db import DbSession
 from app.schemas.domain_service import (
     DomainService,
     DomainServiceCreate,
@@ -49,7 +49,7 @@ rbac = build_rbac_dependencies(
 @router.post("", response_model=DomainService, status_code=status.HTTP_201_CREATED)
 def create_domain_service(
     service_data: DomainServiceCreate,
-    db: Session = Depends(get_db),
+    db: DbSession,
     current_user: User = Depends(get_current_user),
     _authorized: bool = Depends(rbac["create"]),
 ) -> DomainService:
@@ -61,9 +61,7 @@ def create_domain_service(
 
 @router.get("", response_model=Page[DomainService], status_code=status.HTTP_200_OK)
 def list_domain_services(
-    params: Params = Depends(),
-    db: Session = Depends(get_db),
-    _authorized: bool = Depends(rbac["read"]),
+    db: DbSession, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])
 ) -> Page[DomainService]:
     """List all registered domain services."""
     service = DomainServiceRepository(db)
@@ -91,8 +89,8 @@ def get_domain_service(
 )
 def update_domain_service(
     service_data: DomainServiceUpdate,
+    db: DbSession,
     domain_service: DomainServiceModel = Depends(get_domain_service_by_id),
-    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     _authorized: bool = Depends(rbac["update"]),
 ) -> DomainService:
@@ -106,8 +104,8 @@ def update_domain_service(
 
 @router.delete("/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_domain_service(
+    db: DbSession,
     domain_service: DomainServiceModel = Depends(get_domain_service_by_id),
-    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     _authorized: bool = Depends(rbac["delete"]),
 ) -> None:

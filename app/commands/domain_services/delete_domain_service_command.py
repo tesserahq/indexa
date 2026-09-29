@@ -11,6 +11,7 @@ from app.models.user import User
 from app.repositories.domain_service_repository import DomainServiceRepository
 from app.exceptions.handlers import ResourceNotFoundError
 from app.events.domain_service_events import build_domain_service_deleted_event
+from app.db import on_commit
 from tessera_sdk.infra.events.nats_router import NatsEventPublisher
 
 logger = logging.getLogger(__name__)
@@ -74,7 +75,13 @@ class DeleteDomainServiceCommand:
             deleted_event = build_domain_service_deleted_event(
                 domain_service, deleted_by=deleted_by
             )
-            self.nats_publisher.publish_sync(deleted_event, deleted_event.event_type)
+            publisher = self.nats_publisher
+
+            def publish() -> None:
+                publisher.publish_sync(deleted_event, deleted_event.event_type)
+
+            # Dispatch only after the transaction commits; dropped on rollback.
+            on_commit(publish)
         except ResourceNotFoundError:
             raise
         except Exception as e:

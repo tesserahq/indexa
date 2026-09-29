@@ -2,7 +2,7 @@ from uuid import UUID
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.db import get_db
+from app.db import DbSession
 from app.models.domain_service import DomainService
 from app.models.event import Event
 from app.models.reindex_job import ReindexJob
@@ -14,7 +14,7 @@ from app.exceptions.handlers import ResourceNotFoundError
 
 def get_domain_service_by_id(
     service_id: UUID,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> DomainService:
     """FastAPI dependency to get a domain service by ID.
 
@@ -36,7 +36,7 @@ def get_domain_service_by_id(
 
 def get_event_by_id(
     event_id: UUID,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> Event:
     """FastAPI dependency to get an event by ID.
 
@@ -58,7 +58,7 @@ def get_event_by_id(
 
 def get_reindex_job_by_id(
     job_id: UUID,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> ReindexJob:
     """FastAPI dependency to get a reindex job by ID.
 
