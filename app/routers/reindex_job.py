@@ -56,7 +56,9 @@ def create_reindex_job(
 
 
 @router.get("", response_model=Page[ReindexJob], status_code=status.HTTP_200_OK)
-def list_reindex_jobs(db: DbSession, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])) -> Page[ReindexJob]:
+def list_reindex_jobs(
+    db: DbSession, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])
+) -> Page[ReindexJob]:
     """List all reindex jobs."""
     service = ReindexRepository(db)
     return paginate(db, service.get_reindex_jobs_query(), params)
@@ -76,7 +78,11 @@ def get_reindex_job(
 
 
 @router.post("/{job_id}/cancel", status_code=status.HTTP_204_NO_CONTENT)
-def cancel_reindex_job(db: DbSession, job: ReindexJobModel = Depends(get_reindex_job_by_id), _authorized: bool = Depends(rbac["update"])) -> None:
+def cancel_reindex_job(
+    db: DbSession,
+    job: ReindexJobModel = Depends(get_reindex_job_by_id),
+    _authorized: bool = Depends(rbac["update"]),
+) -> None:
     """Cancel a running reindex job."""
     if job.status not in (ReindexJobStatus.PENDING, ReindexJobStatus.RUNNING):
         raise HTTPException(
@@ -89,7 +95,11 @@ def cancel_reindex_job(db: DbSession, job: ReindexJobModel = Depends(get_reindex
 
 
 @router.post("/{job_id}/run", status_code=status.HTTP_204_NO_CONTENT)
-def run_reindex_job(db: DbSession, job: ReindexJobModel = Depends(get_reindex_job_by_id), _authorized: bool = Depends(rbac["update"])) -> None:
+def run_reindex_job(
+    db: DbSession,
+    job: ReindexJobModel = Depends(get_reindex_job_by_id),
+    _authorized: bool = Depends(rbac["update"]),
+) -> None:
     """Run a reindex job."""
     command = ExecuteReindexCommand(db)
     command.execute(job.id)

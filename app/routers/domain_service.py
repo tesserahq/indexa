@@ -60,7 +60,9 @@ def create_domain_service(
 
 
 @router.get("", response_model=Page[DomainService], status_code=status.HTTP_200_OK)
-def list_domain_services(db: DbSession, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])) -> Page[DomainService]:
+def list_domain_services(
+    db: DbSession, params: Params = Depends(), _authorized: bool = Depends(rbac["read"])
+) -> Page[DomainService]:
     """List all registered domain services."""
     service = DomainServiceRepository(db)
     query = service.get_services_query()
@@ -85,7 +87,13 @@ def get_domain_service(
     response_model=DomainService,
     status_code=status.HTTP_200_OK,
 )
-def update_domain_service(service_data: DomainServiceUpdate, db: DbSession, domain_service: DomainServiceModel = Depends(get_domain_service_by_id), current_user: User = Depends(get_current_user), _authorized: bool = Depends(rbac["update"])) -> DomainService:
+def update_domain_service(
+    service_data: DomainServiceUpdate,
+    db: DbSession,
+    domain_service: DomainServiceModel = Depends(get_domain_service_by_id),
+    current_user: User = Depends(get_current_user),
+    _authorized: bool = Depends(rbac["update"]),
+) -> DomainService:
     """Update an existing domain service."""
     command = UpdateDomainServiceCommand(db)
     updated_service = command.execute(
@@ -95,7 +103,12 @@ def update_domain_service(service_data: DomainServiceUpdate, db: DbSession, doma
 
 
 @router.delete("/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_domain_service(db: DbSession, domain_service: DomainServiceModel = Depends(get_domain_service_by_id), current_user: User = Depends(get_current_user), _authorized: bool = Depends(rbac["delete"])) -> None:
+def delete_domain_service(
+    db: DbSession,
+    domain_service: DomainServiceModel = Depends(get_domain_service_by_id),
+    current_user: User = Depends(get_current_user),
+    _authorized: bool = Depends(rbac["delete"]),
+) -> None:
     """Unregister a domain service (soft delete)."""
     command = DeleteDomainServiceCommand(db)
     command.execute(domain_service.id, deleted_by=current_user)  # type: ignore[arg-type]
