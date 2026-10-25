@@ -62,7 +62,7 @@ pytz = "^2025.2"
 postmarker = "^1.0"
 mako = "^1.4.3"
 faststream = {extras = ["nats"], version = "^0.7.0"}
-algoliasearch = "^3.0.0"
+algoliasearch = "^4.48.0"
 opentelemetry-instrumentation-celery = "0.66b1"
 prometheus-fastapi-instrumentator = "^8.1.0"
 
